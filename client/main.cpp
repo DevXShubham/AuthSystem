@@ -4,7 +4,7 @@
 int main()
 {
     std::string username = "test_user";
-    std::string password = "test_password1";
+    std::string password = "test_password";
     int result = auth_login(username.data(), password.data());
     
     if(result == 0) {

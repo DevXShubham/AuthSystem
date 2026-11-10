@@ -1,9 +1,9 @@
-#include "ipc_client.h"
-#include "protocol.h"
-#include "protocol_io.h"
-
 #include <windows.h>
 #include <iostream>
+
+#include "ipc_client.h"
+#include "protocol.h"
+#include "pipe_io.h"
 
 constexpr const char* PIPE_NAME =  
     R"(\\.\pipe\AuthServicePipe)";
@@ -42,6 +42,8 @@ public:
             return false;
         }
 
+
+        
         if (request.size() > Protocol::MAX_MESSAGE_SIZE) {
             std::cerr << "sendRequest failed: request exceeds maximum size" << std::endl;
             return false;
@@ -55,14 +57,14 @@ public:
         );
 
         // Send message length
-        if(!writeAll(pipe, header, sizeof(header))) {
+        if(!PipeIO::writeAll(pipe, header, sizeof(header))) {
             std::cerr << "sendRequest failed writing request header: "
                       << GetLastError() << std::endl;
             return false;
         }
 
         // Send message payload
-        if(!writeAll(
+        if(!PipeIO::writeAll(
             pipe, 
             request.data(),
             static_cast<DWORD>(request.size())
@@ -75,7 +77,7 @@ public:
         // Receive response length
         unsigned char responseHeader[Protocol::HEADER_SIZE];
 
-        if(!readExact(
+        if(!PipeIO::readExact(
             pipe, 
             responseHeader,
             sizeof(responseHeader)
@@ -97,7 +99,7 @@ public:
         response.resize(responseSize);
 
         if(responseSize > 0 && 
-            !readExact(pipe, response.data(), responseSize)) 
+            !PipeIO::readExact(pipe, response.data(), responseSize)) 
         {
             std::cerr << "sendRequest failed reading response payload: "
                       << GetLastError() << std::endl;

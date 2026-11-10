@@ -1,4 +1,3 @@
-#include <windows.h>
 #include <stdexcept>
 #include <iostream>
 #include <string>
@@ -9,8 +8,6 @@
 #include "ipc_server.h"
 
 using json = nlohmann::json;
-
-constexpr const char* PIPE_NAME = R"(\\.\pipe\AuthServicePipe)";
 
 std::string createResponseData(const std::string& request)
 {
@@ -70,8 +67,8 @@ void handleClient(IpcConnection& connection)
     unsigned char header[Protocol::HEADER_SIZE];
 
     if (!connection.readExact(header, sizeof(header))) {
-        std::cerr << "Couldn't read request header! "
-                  << GetLastError() << std::endl;
+        std::cerr << "Couldn't read request header! \n";
+                //   << GetLastError() << std::endl;
         return;
     }
 
@@ -86,8 +83,7 @@ void handleClient(IpcConnection& connection)
 
     if (requestSize != 0 &&
         !connection.readExact(request.data(), requestSize)) {
-        std::cerr << "Couldn't read request payload! "
-                  << GetLastError() << std::endl;
+        std::cerr << "Couldn't read request payload! \n";
         return;
     }
 
@@ -96,22 +92,24 @@ void handleClient(IpcConnection& connection)
     std::string responseData = createResponseData(request);
     unsigned char responseHeader[Protocol::HEADER_SIZE];
 
+    if(responseData.size() > Protocol::MAX_MESSAGE_SIZE) {
+        std::cerr << "Response payload too large! \n";
+    }
+
     Protocol::encodeLength(
         static_cast<uint32_t>(responseData.size()),
         responseHeader
     );
 
     if (!connection.writeAll(responseHeader, sizeof(responseHeader))) {
-        std::cerr << "Couldn't write response header! "
-                << GetLastError() << std::endl;
+        std::cerr << "Couldn't write response header! \n";
         return;
     } 
 
     if (!responseData.empty() &&
         !connection.writeAll(responseData.data(),
-                static_cast<DWORD>(responseData.size()))) {
-        std::cerr << "Couldn't write response payload! "
-                << GetLastError() << std::endl;
+                            static_cast<size_t>(responseData.size()))) {
+        std::cerr << "Couldn't write response payload! \n";
         return;
     }
 }
@@ -126,7 +124,6 @@ int main()
         return 1;
 
     while (true) {
-
         auto client = server->acceptClient();
         
         if(!client) 

@@ -30,12 +30,18 @@ add_executable(auth_client
     client/main.cpp
 )
 
-target_include_directories(auth_service PRIVATE common)
+target_include_directories(auth_service PRIVATE 
+    common 
+    service
+    platform/windows
+)
 
 target_include_directories(auth_sdk
     PUBLIC include
-    PRIVATE common sdk
+    PRIVATE common sdk platform/windows
 )
+
+target_include_directories(auth_client PRIVATE include)
 
 if(WIN32) 
 
@@ -45,7 +51,8 @@ if(WIN32)
     )
 
     target_sources(auth_service PRIVATE
-        platform/windows/pipe_io.cpp 
+        platform/windows/named_pipe_server.cpp 
+        platform/windows/pipe_io.cpp
     )
 
 elseif(UNIX) 

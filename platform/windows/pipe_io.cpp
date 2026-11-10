@@ -1,64 +1,54 @@
-#include "protocol_io.h"
+#include "pipe_io.h"
 
-bool writeAll(
-    HANDLE pipe, 
-    const void* data, 
-    DWORD size
-) {
-    const char* buffer = static_cast<const char*>(data);
-
-    DWORD totalWritten = 0;
-
-    while(totalWritten < size) {
-        DWORD written = 0;
-
-        if(!WriteFile(
-            pipe, 
-            buffer + totalWritten, 
-            size - totalWritten, 
-            &written,
-            nullptr)) 
-        {
-            return false;
-        }
-
-        if (written == 0) 
-            return false;
-
-        totalWritten += written;
-    }
-
-    return true;
-}
-
-bool readExact(
-    HANDLE pipe,
-    void* data,
-    DWORD size)
+namespace PipeIO
 {
-    char* buffer = static_cast<char*>(data);
-
-    DWORD totalRead = 0;
-
-    while (totalRead < size)
+    bool readExact(HANDLE pipe, void* data, size_t size)
     {
-        DWORD received = 0;
+        char* buffer = static_cast<char*>(data);
+        size_t totalRead = 0;
 
-        if (!ReadFile(
-                pipe,
-                buffer + totalRead,
-                size - totalRead,
-                &received,
-                nullptr))
+        while (totalRead < size)
         {
-            return false;
+            DWORD bytesRead = 0;
+
+            if (!ReadFile(
+                    pipe,
+                    buffer + totalRead,
+                    static_cast<DWORD>(size - totalRead),
+                    &bytesRead,
+                    nullptr) || bytesRead == 0)
+            {
+                return false;
+            }
+
+            totalRead += bytesRead;
         }
 
-        if (received == 0)
-            return false;
-
-        totalRead += received;
+        return true;
     }
 
-    return true;
+    bool writeAll(HANDLE pipe, const void* data, size_t size)
+    {
+        const char* buffer = static_cast<const char*>(data);
+        size_t totalWritten = 0;
+
+        while (totalWritten < size)
+        {
+            DWORD bytesWritten = 0;
+
+            if (!WriteFile(
+                    pipe,
+                    buffer + totalWritten,
+                    static_cast<DWORD>(size - totalWritten),
+                    &bytesWritten,
+                    nullptr) || bytesWritten == 0)
+            {
+                return false;
+            }
+
+            totalWritten += bytesWritten;
+        }
+
+        return true;
+    }
 }
