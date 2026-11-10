@@ -126,32 +126,6 @@ int main()
         return 1;
 
     while (true) {
-        // HANDLE pipe = CreateNamedPipeA(
-        //     PIPE_NAME, 
-        //     PIPE_ACCESS_DUPLEX,
-        //     PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
-        //     PIPE_UNLIMITED_INSTANCES,
-        //     1024, 
-        //     1024, 
-        //     0, 
-        //     nullptr
-        // );
-        
-        // std::cout << "Waiting for client..." << std::endl;
- 
-        // BOOL connected = ConnectNamedPipe(pipe, nullptr) 
-        //                 ? TRUE : (GetLastError() == ERROR_PIPE_CONNECTED);
-
-        // if(!connected) {
-        //     std::cerr   << "Connection failed!" 
-        //                 << GetLastError() << std::endl;
-        //     CloseHandle(pipe);
-        //     continue;
-        // }
-
-        // FlushFileBuffers(pipe);
-        // DisconnectNamedPipe(pipe);
-        // CloseHandle(pipe);
 
         auto client = server->acceptClient();
         
