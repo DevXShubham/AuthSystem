@@ -33,12 +33,11 @@ add_executable(auth_client
 target_include_directories(auth_service PRIVATE 
     common 
     service
-    platform/windows
 )
 
 target_include_directories(auth_sdk
     PUBLIC include
-    PRIVATE common sdk platform/windows
+    PRIVATE common sdk
 )
 
 target_include_directories(auth_client PRIVATE include)
@@ -55,12 +54,33 @@ if(WIN32)
         platform/windows/pipe_io.cpp
     )
 
+    target_include_directories(auth_service 
+        PRIVATE platform/windows
+    )
+
+    target_include_directories(auth_sdk
+        PRIVATE platform/windows
+    )
+
 elseif(UNIX) 
 
     target_sources(auth_sdk PRIVATE
         platform/posix/unix_socket_client.cpp
+        platform/posix/socket_io.cpp
     )
 
+    target_sources(auth_service PRIVATE
+        platform/posix/unix_socket_server.cpp
+        platform/posix/socket_io.cpp
+    )
+
+    target_include_directories(auth_sdk PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/posix
+    )
+
+    target_include_directories(auth_service PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/platform/posix
+    )
 endif()
 
 target_link_libraries(auth_client PRIVATE auth_sdk)
